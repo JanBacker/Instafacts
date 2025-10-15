@@ -1,0 +1,39 @@
+function SheetDisplay() {
+  const [data, setData] = useState<{ imgs: string[]; caption: string } | null>(null);
+  const SHEET_URL = "YOUR_PUBLISHED_CSV_URL_HERE"; // example: https://docs.google.com/spreadsheets/d/e/.../pub?output=csv
+
+  useEffect(() => {
+    async function fetchSheet() {
+      try {
+        const res = await fetch(SHEET_URL);
+        const text = await res.text();
+        const rows = text.trim().split("\n").map(r => r.split(","));
+        const row2 = rows[1]; // second row only
+        const imgs = row2.slice(0, -1); // all but last column = images
+        const caption = row2[row2.length - 1]; // last column = caption
+        setData({ imgs, caption });
+      } catch (err) {
+        console.error("Error loading Google Sheet:", err);
+      }
+    }
+    fetchSheet();
+  }, []);
+
+  if (!data) return <p className="text-center text-neutral-500 mt-6">Loading sheet data…</p>;
+
+  return (
+    <div className="bg-white border border-neutral-200 rounded-3xl p-4 mt-6 shadow-sm text-center">
+      <div className="flex justify-center gap-4 flex-wrap">
+        {data.imgs.map((url, i) => (
+          <img
+            key={i}
+            src={url}
+            alt={`sheet-img-${i}`}
+            className="w-40 h-40 object-cover rounded-xl border border-neutral-200"
+          />
+        ))}
+      </div>
+      <p className="mt-4 text-sm text-neutral-700">{data.caption}</p>
+    </div>
+  );
+}
